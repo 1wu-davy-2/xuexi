@@ -1,0 +1,17 @@
+# 依赖与构建产物
+node_modules/
+dist/
+
+# 测试产物
+e2e-out/
+
+# 编辑器与系统文件
+.idea/
+.vscode/
+*.local
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+npm-debug.log*
