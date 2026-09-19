@@ -12,11 +12,11 @@
 ```bash
 cd E:\tmp\Zcode\xuexi
 npm install        # 首次已安装可跳过
-npm run dev        # 启动后访问 http://localhost:5266
+npm run dev        # 启动后访问 http://localhost:18888
 ```
 
-- 开发服务器端口固定为 **5266**（`vite.config.ts` 中 `strictPort`），避免与本机其他项目冲突。
-- 手机访问：同一局域网下打开终端里显示的 Network 地址（如 `http://192.168.x.x:5266`）。
+- 开发服务器端口固定为 **18888**（`vite.config.ts` 中 `strictPort`），避免与本机其他项目冲突。
+- 手机访问：同一局域网下打开终端里显示的 Network 地址（如 `http://192.168.x.x:18888`）。
 - 生产构建：`npm run build`（产物在 `dist/`），本地预览构建结果：`npm run preview`。
 - 自动化验收：`npm run test:e2e`（无头 Chrome 端到端，29 项断言）、`npm run test:data`（题库静态校验）。
 
@@ -33,11 +33,11 @@ npm run dev        # 启动后访问 http://localhost:5266
 
 ```bash
 cd xuexi
-docker compose up -d --build     # 构建并启动，访问 http://localhost:8080
+docker compose up -d --build     # 构建并启动，访问 http://localhost:18888
 ```
 
 - **数据持久化**：SQLite 数据库挂载在宿主机 `./data/app.db`（volume `./data:/app/data`），重建/升级容器、更换镜像数据都不丢；备份即复制这一个文件（含 `-wal/-shm` 时先停容器或用 `sqlite3 .backup`）
-- 端口：默认映射 **8080**，在 `docker-compose.yml` 的 `ports` 里改
+- 端口：默认映射 **18888**，在 `docker-compose.yml` 的 `ports` 里改
 - 首次启动自动建库并创建默认账号；`ADMIN_PASSWORD` 环境变量仅在**首次初始化（data 目录为空）时生效**
 - 镜像特点：多阶段构建，运行层**零 npm 依赖**（后端只用 Node 内置模块，SQLite 用 Node 22 内置 `node:sqlite`），运行镜像不含 node_modules
 
@@ -48,7 +48,7 @@ npm run build
 npm run start        # 即 node server/server.mjs，默认 3000 端口，数据在 ./data
 ```
 
-开发模式（前后端分离调试）：`npm run server`（3000）+ `npm run dev`（5266，/api 自动代理到 3000）。
+开发模式（前后端分离调试）：`npm run server`（3000）+ `npm run dev`（18888，/api 自动代理到 3000）。
 
 
 ## 功能地图
@@ -105,7 +105,7 @@ xuexi/
 │   ├── test-persist.mjs    # 重启持久化验证
 │   └── validate-*.mjs      # 题库静态校验（id 唯一性 / 选项数 / 答案格式）
 ├── Dockerfile              # 多阶段构建：build → 零依赖运行层
-├── docker-compose.yml      # 端口 8080、数据卷 ./data
+├── docker-compose.yml      # 端口 18888、数据卷 ./data
 ├── vite.config.ts
 └── package.json
 ```

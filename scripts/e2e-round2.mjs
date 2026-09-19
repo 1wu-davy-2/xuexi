@@ -6,7 +6,7 @@
 import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
 
-const BASE = 'http://localhost:5266';
+const BASE = 'http://localhost:18888';
 const exe = ['C:/Users/ww/AppData/Local/Google/Chrome/Application/chrome.exe', 'C:/Program Files/Google/Chrome/Application/chrome.exe'].find((p) => fs.existsSync(p));
 const OUT = 'e2e-out';
 fs.mkdirSync(OUT, { recursive: true });

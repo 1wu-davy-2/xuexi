@@ -5,7 +5,7 @@ import fs from 'node:fs';
 const exe = ['C:/Users/ww/AppData/Local/Google/Chrome/Application/chrome.exe'].find((p) => fs.existsSync(p));
 const browser = await puppeteer.launch({ executablePath: exe, headless: 'new', args: ['--no-sandbox'], defaultViewport: { width: 1440, height: 1000 } });
 const page = await browser.newPage();
-await page.goto('http://localhost:5266/#/', { waitUntil: 'domcontentloaded' });
+await page.goto('http://localhost:18888/#/', { waitUntil: 'domcontentloaded' });
 await new Promise((r) => setTimeout(r, 2500));
 const t = await page.evaluate(() => document.body.innerText);
 const ok = t.includes('本地模式') && t.includes('距离江苏成考还有');

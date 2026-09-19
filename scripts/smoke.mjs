@@ -8,9 +8,31 @@ const errs = [];
 page.on('pageerror', (e) => errs.push('pageerror: ' + String(e).slice(0, 200)));
 page.on('console', (m) => { if (m.type() === 'error') errs.push('console: ' + m.text().slice(0, 200)); });
 
-await page.goto('http://localhost:5266/', { waitUntil: 'domcontentloaded' });
+await page.goto('http://localhost:18888/', { waitUntil: 'domcontentloaded' });
 await new Promise((r) => setTimeout(r, 1500));
-const t = await page.evaluate(() => document.body.innerText);
+let t = await page.evaluate(() => document.body.innerText);
+
+// 出现登录页则自动登录（后端可达）；否则应为本地模式直接进入
+if (t.includes('默认账号')) {
+  console.log('模式: 登录页（后端在线）');
+  await page.evaluate(() => {
+    const setV = (sel, v) => {
+      const el = document.querySelector(sel);
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+      setter.call(el, v);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    setV('input[placeholder="用户名"]', 'admin');
+    setV('input[placeholder="密码"]', 'admin@123');
+    const b = [...document.querySelectorAll('button')].find((x) => (x.textContent || '').trim() === '登录');
+    if (b) b.click();
+  });
+  await new Promise((r) => setTimeout(r, 2000));
+  t = await page.evaluate(() => document.body.innerText);
+} else {
+  console.log('模式: 本地模式（后端未启动）');
+}
+
 console.log('倒计时:', /距离江苏成考还有/.test(t.replace(/\n/g, '')) ? 'OK' : 'MISSING');
 console.log('三科卡片:', (['政治', '英语', '高等数学（一）'].every((s) => t.includes(s))) ? 'OK' : 'MISSING');
 console.log('导航项:', (['冲刺计划', '课程学习', '模拟考试', '错题本', '速记卡'].every((s) => t.includes(s))) ? 'OK' : 'MISSING');

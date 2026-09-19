@@ -4,7 +4,7 @@ services:
     image: ck-sprint:latest
     container_name: ck-sprint
     ports:
-      - "8080:3000"          # 宿主机 8080 访问 http://localhost:8080
+      - "18888:3000"          # 宿主机 18888 访问 http://localhost:18888
     volumes:
       - ./data:/app/data     # SQLite 数据落盘：重建/升级容器数据不丢
     environment:

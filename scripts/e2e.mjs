@@ -1,12 +1,12 @@
 /**
  * E2E 冒烟测试：使用系统 Chrome（headless）驱动复习系统。
- * 运行：node scripts/e2e.mjs   （需先启动 npm run dev，端口 5266）
+ * 运行：node scripts/e2e.mjs   （需先启动 npm run dev，端口 18888）
  */
 import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const BASE = 'http://localhost:5266';
+const BASE = 'http://localhost:18888';
 const CHROME_CANDIDATES = [
   'C:/Users/ww/AppData/Local/Google/Chrome/Application/chrome.exe',
   'C:/Program Files/Google/Chrome/Application/chrome.exe',

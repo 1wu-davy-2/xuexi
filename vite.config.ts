@@ -8,6 +8,6 @@ const backend = process.env.BACKEND_URL || 'http://localhost:3000';
 export default defineConfig({
   plugins: [react()],
   base: './',
-  server: { host: true, port: 5266, strictPort: true, proxy: { '/api': backend } },
+  server: { host: true, port: 18888, strictPort: true, proxy: { '/api': backend } },
   build: { chunkSizeWarningLimit: 1500 },
 });
