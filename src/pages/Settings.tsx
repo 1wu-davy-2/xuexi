@@ -4,8 +4,15 @@ import { ALL_QUESTIONS } from '../data';
 import { Btn, Card, SectionTitle } from '../components/ui';
 import { Icon } from '../components/icons';
 
+const SYNC_LABEL: Record<string, { text: string; cls: string }> = {
+  idle: { text: '空闲', cls: 'text-slate-400' },
+  saving: { text: '同步中…', cls: 'text-brand-600' },
+  saved: { text: '已同步', cls: 'text-emerald-600' },
+  error: { text: '同步失败，稍后重试', cls: 'text-rose-500' },
+};
+
 export default function Settings() {
-  const { settings, setSettings, resetAll, readLessons, attempts, exams, planDone } = useStore();
+  const { settings, setSettings, resetAll, readLessons, attempts, exams, planDone, phase, username, syncState, logout, syncNow } = useStore();
   const [name, setName] = useState(settings.name);
   const [examDate, setExamDate] = useState(settings.examDate);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -24,6 +31,38 @@ export default function Settings() {
   return (
     <div className="max-w-2xl">
       <SectionTitle icon="settings" title="设置" desc="姓名用于打印页眉；考试日期驱动首页倒计时与计划定位。" />
+
+      {/* 账号与云同步 */}
+      <Card className="p-5 mb-5">
+        <h3 className="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2">
+          <Icon name="check" className="w-4 h-4 text-brand-500" />
+          账号与数据同步
+        </h3>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center font-bold">
+            {username ? username.slice(0, 1).toUpperCase() : '?'}
+          </span>
+          <div className="flex-1 min-w-[160px]">
+            <div className="font-semibold text-slate-800">{username || '未登录'}</div>
+            <div className={`text-xs mt-0.5 ${phase === 'authed' ? SYNC_LABEL[syncState].cls : 'text-amber-600'}`}>
+              {phase === 'authed'
+                ? `云端同步：${SYNC_LABEL[syncState].text}（改动后自动保存到服务器）`
+                : phase === 'local'
+                  ? '本地模式：未连接服务器，进度仅保存在本浏览器'
+                  : '本地模式'}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Btn variant="outline" size="sm" onClick={() => void syncNow()}>
+              <Icon name="refresh" className="w-4 h-4" />
+              {phase === 'authed' ? '立即同步' : '重试连接'}
+            </Btn>
+            <Btn variant="ghost" size="sm" onClick={logout}>
+              退出登录
+            </Btn>
+          </div>
+        </div>
+      </Card>
 
       <Card className="p-5 space-y-5">
         <div>
@@ -58,7 +97,7 @@ export default function Settings() {
       <Card className="p-5 mt-5">
         <h3 className="font-bold text-slate-800 text-sm mb-3">数据管理</h3>
         <p className="text-xs text-slate-500 leading-6 mb-3">
-          全部学习记录（已学 {readLessons.length} 讲、作答 {Object.keys(attempts).length} 题、模考 {exams.length} 次）只保存在本机浏览器中。换电脑或清缓存前请先导出备份。题库共 {ALL_QUESTIONS.length} 题。
+          已学 {readLessons.length} 讲、作答 {Object.keys(attempts).length} 题、模考 {exams.length} 次。登录状态下数据自动同步到服务器（SQLite 存储）；本地缓存同时保留，可导出 JSON 备份。题库共 {ALL_QUESTIONS.length} 题。
         </p>
         <div className="flex flex-wrap gap-2">
           <Btn variant="outline" onClick={exportData}>

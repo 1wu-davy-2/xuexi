@@ -54,8 +54,32 @@ async function text() {
 }
 
 try {
-  // 1. 首页
+  // 0. 若出现登录页（后端可达），自动登录；否则应用会进入本地模式
   await page.goto(BASE + '/#/', { waitUntil: 'domcontentloaded' });
+  await new Promise((r) => setTimeout(r, 1000));
+  let t0 = await text();
+  if (t0.includes('默认账号')) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await page.evaluate(() => {
+        const setV = (sel, v) => {
+          const el = document.querySelector(sel);
+          const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+          setter.call(el, v);
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+        setV('input[placeholder="用户名"]', 'admin');
+        setV('input[placeholder="密码"]', 'admin@123');
+        const b = [...document.querySelectorAll('button')].find((x) => (x.textContent || '').trim() === '登录');
+        if (b) b.click();
+      });
+      await new Promise((r) => setTimeout(r, 2000));
+      t0 = await text();
+      if (t0.includes('距离江苏成考还有')) break;
+    }
+    check('自动登录（后端模式）', t0.includes('距离江苏成考还有'));
+  }
+
+  // 1. 首页
   await page.waitForSelector('main', { timeout: 10000 });
   await new Promise((r) => setTimeout(r, 1200));
   let t = await text();

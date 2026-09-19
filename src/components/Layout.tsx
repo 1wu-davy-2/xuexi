@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Icon } from './icons';
 import { useStore } from '../store/store';
@@ -27,10 +27,11 @@ function useCountdown() {
   }, [settings.examDate]);
 }
 
-export function Layout() {
+export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { days } = useCountdown();
+  const { phase, username } = useStore();
 
   const nav = (
     <nav className="flex flex-col gap-1 px-3">
@@ -66,78 +67,87 @@ export function Layout() {
     </div>
   );
 
-  return (
-    <div id="app-root" className="min-h-screen flex">
-      {/* 桌面侧栏 */}
-      <aside className="hidden lg:flex w-60 flex-col border-r border-slate-200 bg-white/80 backdrop-blur sticky top-0 h-screen">
-        {brand}
-        {nav}
-        <div className="mt-auto p-4">
-          <div className={`rounded-2xl p-4 text-white bg-gradient-to-br ${days <= 14 ? 'from-rose-500 to-orange-400' : 'from-brand-500 to-brand-700'} shadow-lg`}>
-            <div className="text-xs opacity-80">距离考试还剩</div>
-            <div className="text-3xl font-black mt-0.5">
-              {days}
-              <span className="text-sm font-semibold ml-1">天</span>
-            </div>
-            <div className="text-[11px] opacity-75 mt-1">{settings_text()}</div>
-          </div>
+  const footer = (
+    <div className="mt-auto p-4 space-y-3">
+      {username && (
+        <div className="flex items-center gap-2.5 px-2 text-sm text-slate-500">
+          <span className="w-7 h-7 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold">{username.slice(0, 1).toUpperCase()}</span>
+          {username}
         </div>
-      </aside>
-
-      {/* 移动端抽屉 */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileOpen(false)} className="fixed inset-0 bg-slate-900/40 z-40 lg:hidden" />
-            <motion.aside
-              initial={{ x: -280 }}
-              animate={{ x: 0 }}
-              exit={{ x: -280 }}
-              transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-              className="fixed left-0 top-0 bottom-0 w-64 bg-white z-50 flex flex-col overflow-y-auto lg:hidden"
-            >
-              {brand}
-              {nav}
-              <div className="p-4 mt-auto">
-                <div className="rounded-2xl p-4 text-white bg-gradient-to-br from-brand-500 to-brand-700">
-                  <div className="text-xs opacity-80">距离考试还剩 {days} 天</div>
-                  <div className="text-[11px] opacity-75 mt-1">{settings_text()}</div>
-                </div>
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* 主区 */}
-      <div className="flex-1 min-w-0 flex flex-col">
-        <header className="sticky top-0 z-30 lg:hidden bg-white/85 backdrop-blur border-b border-slate-200 px-4 py-3 flex items-center gap-3">
-          <button onClick={() => setMobileOpen(true)} className="p-1.5 -m-1.5 text-slate-600">
-            <Icon name="menu" className="w-6 h-6" />
-          </button>
-          <span className="font-bold text-slate-900">成考冲刺</span>
-          <span className={`ml-auto text-xs font-bold px-2.5 py-1 rounded-full ${days <= 14 ? 'bg-rose-100 text-rose-600' : 'bg-brand-100 text-brand-700'}`}>倒计时 {days} 天</span>
-        </header>
-        <AnimatePresence mode="wait">
-          <motion.main
-            key={location.pathname}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
-            className="flex-1 px-4 sm:px-6 lg:px-10 py-6 lg:py-8 max-w-6xl w-full mx-auto"
-          >
-            <Outlet />
-          </motion.main>
-        </AnimatePresence>
-        <footer className="text-center text-xs text-slate-400 pb-8">
-          成考冲刺 · 江苏专升本理工类复习系统 · 数据保存在本机浏览器 · 免责声明：内容供复习参考，以官方大纲与真题为准
-        </footer>
+      )}
+      <div className={`rounded-2xl p-4 text-white bg-gradient-to-br ${days <= 14 ? 'from-rose-500 to-orange-400' : 'from-brand-500 to-brand-700'} shadow-lg`}>
+        <div className="text-xs opacity-80">距离考试还剩</div>
+        <div className="text-3xl font-black mt-0.5">
+          {days}
+          <span className="text-sm font-semibold ml-1">天</span>
+        </div>
+        <div className="text-[11px] opacity-75">2026.10.17 开考 · 加油！</div>
       </div>
     </div>
   );
-}
 
-function settings_text() {
-  return '2026.10.17 开考 · 加油！';
+  return (
+    <div id="app-root" className="min-h-screen flex flex-col">
+      {/* 本地模式提示条 */}
+      {phase === 'local' && (
+        <div className="bg-amber-400 text-amber-950 text-xs font-medium text-center px-4 py-1.5">
+          本地模式：未连接服务器，进度仅保存在本浏览器（可在「设置」重试连接）
+        </div>
+      )}
+      <div className="flex flex-1">
+        {/* 桌面侧栏 */}
+        <aside className="hidden lg:flex w-60 flex-col border-r border-slate-200 bg-white/80 backdrop-blur sticky top-0 h-screen">
+          {brand}
+          {nav}
+          {footer}
+        </aside>
+
+        {/* 移动端抽屉 */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileOpen(false)} className="fixed inset-0 bg-slate-900/40 z-40 lg:hidden" />
+              <motion.aside
+                initial={{ x: -280 }}
+                animate={{ x: 0 }}
+                exit={{ x: -280 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+                className="fixed left-0 top-0 bottom-0 w-64 bg-white z-50 flex flex-col overflow-y-auto lg:hidden"
+              >
+                {brand}
+                {nav}
+                {footer}
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* 主区 */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          <header className="sticky top-0 z-30 lg:hidden bg-white/85 backdrop-blur border-b border-slate-200 px-4 py-3 flex items-center gap-3">
+            <button onClick={() => setMobileOpen(true)} className="p-1.5 -m-1.5 text-slate-600">
+              <Icon name="menu" className="w-6 h-6" />
+            </button>
+            <span className="font-bold text-slate-900">成考冲刺</span>
+            <span className={`ml-auto text-xs font-bold px-2.5 py-1 rounded-full ${days <= 14 ? 'bg-rose-100 text-rose-600' : 'bg-brand-100 text-brand-700'}`}>倒计时 {days} 天</span>
+          </header>
+          <AnimatePresence mode="wait">
+            <motion.main
+              key={location.pathname}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              className="flex-1 px-4 sm:px-6 lg:px-10 py-6 lg:py-8 max-w-6xl w-full mx-auto"
+            >
+              {children}
+            </motion.main>
+          </AnimatePresence>
+          <footer className="text-center text-xs text-slate-400 pb-8">
+            成考冲刺 · 江苏专升本理工类复习系统 · 免责声明：内容供复习参考，以官方大纲与真题为准
+          </footer>
+        </div>
+      </div>
+    </div>
+  );
 }

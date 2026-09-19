@@ -18,9 +18,38 @@ npm run dev        # 启动后访问 http://localhost:5266
 - 开发服务器端口固定为 **5266**（`vite.config.ts` 中 `strictPort`），避免与本机其他项目冲突。
 - 手机访问：同一局域网下打开终端里显示的 Network 地址（如 `http://192.168.x.x:5266`）。
 - 生产构建：`npm run build`（产物在 `dist/`），本地预览构建结果：`npm run preview`。
-- 自动化验收：`npm run test:e2e`（无头 Chrome 端到端，28 项断言）、`npm run test:data`（题库静态校验）。
+- 自动化验收：`npm run test:e2e`（无头 Chrome 端到端，29 项断言）、`npm run test:data`（题库静态校验）。
 
-> 数据全部保存在**本机浏览器 localStorage**，不联网、不上传。换电脑或清理浏览器数据前，先在「设置」页导出进度备份。
+## 登录与云同步
+
+系统支持**账号登录 + 云端进度同步**（登录后学习进度自动保存到服务器 SQLite，换设备/多设备不丢）：
+
+- 默认账号：**admin / admin@123**（首次启动自动创建；密码可在首次部署前用环境变量 `ADMIN_PASSWORD` 覆盖）
+- 登录后所有进度（已学课件、刷题记录、模考成绩、错题本、计划勾选）自动同步，改动后约 1 秒推送到服务器
+- **本地模式降级**：服务器不可达时应用自动进入本地模式（进度仅存本浏览器），恢复后可在「设置 → 重试连接」回到云同步；登录页也提供「本地模式进入」入口
+- 会话有效期 7 天（`SESSION_DAYS` 可调），登录接口有基础限速防爆破
+
+## Docker Compose 部署（推荐）
+
+```bash
+cd xuexi
+docker compose up -d --build     # 构建并启动，访问 http://localhost:8080
+```
+
+- **数据持久化**：SQLite 数据库挂载在宿主机 `./data/app.db`（volume `./data:/app/data`），重建/升级容器、更换镜像数据都不丢；备份即复制这一个文件（含 `-wal/-shm` 时先停容器或用 `sqlite3 .backup`）
+- 端口：默认映射 **8080**，在 `docker-compose.yml` 的 `ports` 里改
+- 首次启动自动建库并创建默认账号；`ADMIN_PASSWORD` 环境变量仅在**首次初始化（data 目录为空）时生效**
+- 镜像特点：多阶段构建，运行层**零 npm 依赖**（后端只用 Node 内置模块，SQLite 用 Node 22 内置 `node:sqlite`），运行镜像不含 node_modules
+
+本地以生产模式跑（不开 Docker）：
+
+```bash
+npm run build
+npm run start        # 即 node server/server.mjs，默认 3000 端口，数据在 ./data
+```
+
+开发模式（前后端分离调试）：`npm run server`（3000）+ `npm run dev`（5266，/api 自动代理到 3000）。
+
 
 ## 功能地图
 
@@ -55,7 +84,7 @@ npm run dev        # 启动后访问 http://localhost:5266
 
 ```
 xuexi/
-├── src/
+├── src/                    # 前端（React + TS）
 │   ├── data/               # 全部内容（课件 + 题库 + 计划 + 考情 + 策略）
 │   │   ├── politics/       # lessons.ts / questions-real.ts 真题 / questions-orig.ts 原创
 │   │   ├── english/
@@ -63,14 +92,20 @@ xuexi/
 │   │   ├── plan.ts         # 五周冲刺计划（5 周 35 天 82 项）
 │   │   ├── jiangsu.ts      # 江苏考情内容块（12 块）
 │   │   └── strategy.ts     # 三科抢分策略（15 块）
-│   ├── pages/              # 总览/计划/学习/练习/模考/错题本/速记卡/考情/策略/设置
+│   ├── pages/              # 登录/总览/计划/学习/练习/模考/错题本/速记卡/考情/策略/设置
 │   ├── components/         # 布局、答题卡、翻卡、内容块渲染等
 │   ├── utils/              # 轻量 markdown+KaTeX 渲染、组卷抽样、打印/PDF 输出
-│   ├── store/              # localStorage 状态管理
+│   ├── store/              # 状态管理：localStorage 缓存 + 登录鉴权 + 云同步
 │   └── types.ts            # Lesson / Question / PlanWeek 等数据结构
+├── server/server.mjs       # 零依赖后端：静态托管 + 登录鉴权 + 进度存取（node:sqlite）
 ├── scripts/
-│   ├── e2e.mjs             # 无头 Chrome 端到端测试（28 项断言）
+│   ├── e2e.mjs             # 无头 Chrome 端到端测试（29 项断言，含后端模式自动登录）
+│   ├── test-api.mjs        # 后端 API 集成测试（需先启动 server）
+│   ├── test-fullstack.mjs  # 全栈 UI 测试：登录/云同步/刷新保持（需先构建并启动 server）
+│   ├── test-persist.mjs    # 重启持久化验证
 │   └── validate-*.mjs      # 题库静态校验（id 唯一性 / 选项数 / 答案格式）
+├── Dockerfile              # 多阶段构建：build → 零依赖运行层
+├── docker-compose.yml      # 端口 8080、数据卷 ./data
 ├── vite.config.ts
 └── package.json
 ```

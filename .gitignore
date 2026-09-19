@@ -5,6 +5,13 @@ dist/
 # 测试产物
 e2e-out/
 
+# 运行时数据（SQLite）
+data/
+*.db
+*.db-shm
+*.db-wal
+server-test.log
+
 # 编辑器与系统文件
 .idea/
 .vscode/

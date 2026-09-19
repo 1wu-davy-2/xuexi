@@ -1,0 +1,13 @@
+services:
+  ck-sprint:
+    build: .
+    image: ck-sprint:latest
+    container_name: ck-sprint
+    ports:
+      - "8080:3000"          # 宿主机 8080 访问 http://localhost:8080
+    volumes:
+      - ./data:/app/data     # SQLite 数据落盘：重建/升级容器数据不丢
+    environment:
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin@123}   # 首次初始化时生效，建库后修改无效
+      - SESSION_DAYS=${SESSION_DAYS:-7}
+    restart: unless-stopped

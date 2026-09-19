@@ -1,0 +1,8 @@
+feat: 登录鉴权 + SQLite 云同步 + Docker Compose 部署
+
+- 零依赖后端 server.mjs：node:sqlite 存用户/会话/进度，静态托管 dist，登录限速
+- 默认账号 admin/admin@123（scrypt 加盐哈希，首次启动播种，ADMIN_PASSWORD 可覆盖）
+- 前端登录页 + 云同步层：改动防抖推送、登录拉取、会话过期自动回登录页
+- 服务器不可达自动降级本地模式（进度仅存本机），恢复后可重连
+- Docker Compose：多阶段构建、运行层零 npm 依赖、./data 卷持久化 SQLite
+- 测试：API 集成 11 项 / 全栈 UI 10 项 / 重启持久化 / 本地模式降级 / e2e 升级 29 项
